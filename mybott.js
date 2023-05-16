@@ -47,7 +47,9 @@ bot.on('message', async (msg) => {
     // Send the reply back to the user
     bot.sendMessage(chatId, reply);
   } catch (error) {
-    console.error(error);
+    console.error(error.response.data);
+    console.error(error.response.status);
+    console.error(error.response.headers);
     bot.sendMessage(chatId, 'Oops! Something went wrong.');
   }
 });
