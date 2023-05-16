@@ -32,8 +32,8 @@ bot.on('message', async (msg) => {
     max_tokens: 100,
   };
 
-  // Make a POST request to ChatGPT API
   try {
+    // Make a POST request to ChatGPT API
     const response = await axios.post(apiEndpoint, payload, {
       headers: {
         'Content-Type': 'application/json',
@@ -41,9 +41,13 @@ bot.on('message', async (msg) => {
       },
     });
 
+    // Retrieve the reply from the API response
     const reply = response.data.choices[0].message.content;
+
+    // Send the reply back to the user
     bot.sendMessage(chatId, reply);
   } catch (error) {
+    console.error(error);
     bot.sendMessage(chatId, 'Oops! Something went wrong.');
   }
 });
