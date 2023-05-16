@@ -17,10 +17,9 @@ bot.on('message', async (msg) => {
 
   try {
 // Send message to ChatGPT API
-const response = await axios.post('https://api.openai.com/v1/engines/davinci-codex/completions', {
-  prompt: 'You are a helpful assistant.\nUser: ' + message,
-  max_tokens: 50,
-  temperature: 0.6,
+const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+  model: 'gpt-3.5-turbo',
+  messages: [{ role: 'system', content: 'You are a helpful assistant.' }, { role: 'user', content: message }],
 }, {
   headers: {
     'Content-Type': 'application/json',
@@ -28,8 +27,10 @@ const response = await axios.post('https://api.openai.com/v1/engines/davinci-cod
   },
 });
 
+
 // Retrieve the generated response from ChatGPT
-const generatedText = response.data.choices[0].text;
+// Retrieve the generated response from ChatGPT
+const generatedText = response.data.choices[0].message.content;
     // Send the response back to the user
     bot.sendMessage(chatId, generatedText);
   } catch (error) {
