@@ -20,6 +20,8 @@ bot.onText(/\/start/, (msg) => {
 
 // Handle incoming messages
 bot.on('message', async (msg) => {
+  console.log(`Received message from ${msg.chat.id}: ${msg.text}`);
+
   const chatId = msg.chat.id;
   const message = msg.text;
 
@@ -47,9 +49,7 @@ bot.on('message', async (msg) => {
     // Send the reply back to the user
     bot.sendMessage(chatId, reply);
   } catch (error) {
-    console.error(error.response.data);
-    console.error(error.response.status);
-    console.error(error.response.headers);
+    console.error(error);
     bot.sendMessage(chatId, 'Oops! Something went wrong.');
   }
 });
