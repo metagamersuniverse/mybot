@@ -1,48 +1,78 @@
-require('dotenv').config();
-const TelegramBot = require('node-telegram-bot-api');
-const axios = require('axios');
+require('dotenv').config()
+const { Configuration, OpenAIApi } = require("openai");
+const { getImage, getChat } = require("./Helper/functions");
+const { Telegraf } = require("telegraf");
 
-// Telegram Bot Token
-const telegramToken = process.env.TELEGRAM_TOKEN;
-// ChatGPT Plus API Token
-const gptAPIKey = process.env.GPT_API_KEY;
+const configuration = new Configuration({
+  apiKey: process.env.API,
+});
+const openai = new OpenAIApi(configuration);
+module.exports = openai;
 
-// Create a Telegram bot instance
-const bot = new TelegramBot(telegramToken, { polling: true });
+const bot = new Telegraf(process.env.TG_API);
+bot.start((ctx) => ctx.reply("Welcome , You can ask anything from me"));
 
-// Handle incoming messages
-bot.on('message', async (msg) => {
-  const chatId = msg.chat.id;
-  const message = msg.text;
-
-  try {
-// Send message to ChatGPT API
-const response = await axios.post('https://api.openai.com/v1/engines/davinci-codex/completions', {
-  prompt: 'You are a helpful assistant.\nUser: ' + message,
-  max_tokens: 100,
-}, {
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${gptAPIKey}`,
-  },
+bot.help((ctx) => {
+  ctx.reply(
+    "This bot can perform the following command \n /image -> to create image from text \n /ask -> ank anything from me "
+  );
 });
 
 
 
+// Image command
+bot.command("image", async (ctx) => {
+  const text = ctx.message.text?.replace("/image", "")?.trim().toLowerCase();
 
-// Retrieve the generated response from ChatGPT// Retrieve the generated response from ChatGPT
-const generatedText = response.data.choices[0].text.trim();
-    // Send the response back to the user
-    bot.sendMessage(chatId, generatedText);
-  } catch (error) {
-    console.error('Error:', error);
-    bot.sendMessage(chatId, 'Oops! Something went wrong.');
+  if (text) {
+   
+    const res = await getImage(text);
+
+    if (res) {
+      ctx.sendChatAction("upload_photo");
+      // ctx.sendPhoto(res);
+      // ctx.telegram.sendPhoto()
+      ctx.telegram.sendPhoto(ctx.message.chat.id, res, {
+        reply_to_message_id: ctx.message.message_id,
+      });
+    }
+  } else {
+    ctx.telegram.sendMessage(
+      ctx.message.chat.id,
+      "You have to give some description after /image",
+      {
+        reply_to_message_id: ctx.message.message_id,
+      }
+    );
   }
 });
 
-// Start the bot
-bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
-  const welcomeMessage = 'Hello! I am your friendly ChatGPT bot. Feel free to chat with me!';
-  bot.sendMessage(chatId, welcomeMessage);
+// Chat command
+
+bot.command("ask", async (ctx) => {
+  const text = ctx.message.text?.replace("/ask", "")?.trim().toLowerCase();
+
+  if (text) {
+    ctx.sendChatAction("typing");
+    const res = await getChat(text);
+    if (res) {
+      ctx.telegram.sendMessage(ctx.message.chat.id, res, {
+        reply_to_message_id: ctx.message.message_id,
+      });
+    }
+  } else {
+    ctx.telegram.sendMessage(
+      ctx.message.chat.id,
+      "Please ask anything after /ask",
+      {
+        reply_to_message_id: ctx.message.message_id,
+      }
+    );
+  
+    //  reply("Please ask anything after /ask");
+  }
 });
+
+
+
+bot.launch();
