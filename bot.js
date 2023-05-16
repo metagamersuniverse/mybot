@@ -30,7 +30,7 @@ const response = await axios.post('https://api.openai.com/v1/chat/completions', 
 
 // Retrieve the generated response from ChatGPT
 // Retrieve the generated response from ChatGPT
-const generatedText = response.data.choices[0].message.content;
+const generatedText = response.data.choices[0].message.content[0].content;
     // Send the response back to the user
     bot.sendMessage(chatId, generatedText);
   } catch (error) {
