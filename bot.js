@@ -17,9 +17,10 @@ bot.on('message', async (msg) => {
 
   try {
 // Send message to ChatGPT API
-const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-  model: 'gpt-3.5-turbo',
-  messages: [{ role: 'system', content: 'You are a helpful assistant.' }, { role: 'user', content: message }],
+const response = await axios.post('https://api.openai.com/v1/engines/davinci-codex/completions', {
+  prompt: 'You are a helpful assistant.\nUser: ' + message,
+  max_tokens: 50,
+  temperature: 0.6,
 }, {
   headers: {
     'Content-Type': 'application/json',
