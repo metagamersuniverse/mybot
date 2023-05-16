@@ -20,23 +20,18 @@ bot.help((ctx) => {
 
 // Image command
 bot.command("image", async (ctx) => {
-  const text = ctx.message.text?.replace("/image", "")?.trim().toLowerCase();
+  const text = ctx.message.text?.replace("/image", "")?.trim();
 
   if (text) {
-    try {
-      const res = await getImage(text);
+    const res = await getImage(text);
 
-      if (res) {
-        ctx.sendChatAction("upload_photo");
-        ctx.telegram.sendPhoto(ctx.message.chat.id, res, {
-          reply_to_message_id: ctx.message.message_id,
-        });
-      }
-    } catch (error) {
-      console.error("Error occurred during image command:", error);
+    if (res) {
+      ctx.sendChatAction("upload_photo");
+      ctx.telegram.sendPhoto(ctx.message.chat.id, { source: res });
+    } else {
       ctx.telegram.sendMessage(
         ctx.message.chat.id,
-        "An error occurred while processing the image command.",
+        "Sorry, I couldn't find an image for the given description.",
         {
           reply_to_message_id: ctx.message.message_id,
         }
@@ -52,6 +47,7 @@ bot.command("image", async (ctx) => {
     );
   }
 });
+
 
 // Chat command
 bot.command("ask", async (ctx) => {
