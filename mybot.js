@@ -12,6 +12,9 @@ const apiToken = process.env.CHATGPT_API_TOKEN;
 // Create a new Telegram bot instance
 const bot = new TelegramBot(token, { polling: true });
 
+// Store the last update ID to avoid processing duplicate messages
+let lastUpdateId = null;
+
 // Handle the /start command
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
@@ -24,6 +27,12 @@ bot.on('message', async (msg) => {
 
   const chatId = msg.chat.id;
   const message = msg.text;
+
+  // Avoid processing duplicate messages
+  if (msg.update_id === lastUpdateId) {
+    return;
+  }
+  lastUpdateId = msg.update_id;
 
   // Prepare the payload for ChatGPT API
   const payload = {
@@ -39,7 +48,7 @@ bot.on('message', async (msg) => {
     const response = await axios.post(apiEndpoint, payload, {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiToken}`,
+        'Authorization': `Bearer ${apiToken}`,
       },
     });
 
