@@ -1,67 +1,46 @@
+require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
-require('dotenv').config();
 
-// Configure the Telegram Bot API token
-const token = process.env.TELEGRAM_API_TOKEN;
+// Telegram Bot Token
+const telegramToken = process.env.TELEGRAM_TOKEN;
+// ChatGPT Plus API Token
+const gptAPIKey = process.env.GPT_API_KEY;
 
-// Configure your ChatGPT API endpoint and authorization token
-const apiEndpoint = 'https://api.openai.com/v1/chat/completions';
-const apiToken = process.env.CHATGPT_API_TOKEN;
-
-// Create a new Telegram bot instance
-const bot = new TelegramBot(token, { polling: true });
-
-// Store the last update ID to avoid processing duplicate messages
-let lastUpdateId = null;
-
-// Handle the /start command
-bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
-  bot.sendMessage(chatId, 'Hello! I am your ChatGPT bot.');
-});
+// Create a Telegram bot instance
+const bot = new TelegramBot(telegramToken, { polling: true });
 
 // Handle incoming messages
 bot.on('message', async (msg) => {
-  console.log(`Received message from ${msg.chat.id}: ${msg.text}`);
-
   const chatId = msg.chat.id;
   const message = msg.text;
 
-  // Avoid processing duplicate messages
-  if (msg.update_id === lastUpdateId) {
-    return;
-  }
-  lastUpdateId = msg.update_id;
-
-  // Prepare the payload for ChatGPT API
-  const payload = {
-    messages: [
-      { role: 'system', content: 'You are User' },
-      { role: 'user', content: message },
-    ],
-    max_tokens: 100,
-  };
-
   try {
-    // Make a POST request to ChatGPT API
-    const response = await axios.post(apiEndpoint, payload, {
+    // Send message to ChatGPT API
+    const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+      model: 'gpt-3.5-turbo',
+      messages: [{ role: 'system', content: 'You are a helpful assistant.' }, { role: 'user', content: message }],
+    }, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiToken}`,
+        'Authorization': `Bearer ${gptAPIKey}`,
       },
     });
 
-    // Retrieve the reply from the API response
-    const reply = response.data.choices[0].message.content;
+    // Retrieve the generated response from ChatGPT
+    const generatedText = response.data.choices[0].message.content;
 
-    // Send the reply back to the user
-    bot.sendMessage(chatId, reply);
+    // Send the response back to the user
+    bot.sendMessage(chatId, generatedText);
   } catch (error) {
-    console.error(error);
+    console.error('Error:', error);
     bot.sendMessage(chatId, 'Oops! Something went wrong.');
   }
 });
 
 // Start the bot
-bot.startPolling();
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+  const welcomeMessage = 'Hello! I am your friendly ChatGPT bot. Feel free to chat with me!';
+  bot.sendMessage(chatId, welcomeMessage);
+});
