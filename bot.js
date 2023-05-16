@@ -10,31 +10,37 @@ const openai = new OpenAIApi(configuration);
 module.exports = openai;
 
 const bot = new Telegraf(process.env.TG_API);
-bot.start((ctx) => ctx.reply("Welcome , You can ask anything from me"));
+bot.start((ctx) => ctx.reply("Welcome! You can ask anything from me."));
 
 bot.help((ctx) => {
   ctx.reply(
-    "This bot can perform the following command \n /image -> to create image from text \n /ask -> ank anything from me "
+    "This bot can perform the following commands:\n/image -> to create an image from text\n/ask -> ask anything from me"
   );
 });
-
-
 
 // Image command
 bot.command("image", async (ctx) => {
   const text = ctx.message.text?.replace("/image", "")?.trim().toLowerCase();
 
   if (text) {
-   
-    const res = await getImage(text);
+    try {
+      const res = await getImage(text);
 
-    if (res) {
-      ctx.sendChatAction("upload_photo");
-      // ctx.sendPhoto(res);
-      // ctx.telegram.sendPhoto()
-      ctx.telegram.sendPhoto(ctx.message.chat.id, res, {
-        reply_to_message_id: ctx.message.message_id,
-      });
+      if (res) {
+        ctx.sendChatAction("upload_photo");
+        ctx.telegram.sendPhoto(ctx.message.chat.id, res, {
+          reply_to_message_id: ctx.message.message_id,
+        });
+      }
+    } catch (error) {
+      console.error("Error occurred during image command:", error);
+      ctx.telegram.sendMessage(
+        ctx.message.chat.id,
+        "An error occurred while processing the image command.",
+        {
+          reply_to_message_id: ctx.message.message_id,
+        }
+      );
     }
   } else {
     ctx.telegram.sendMessage(
@@ -48,17 +54,27 @@ bot.command("image", async (ctx) => {
 });
 
 // Chat command
-
 bot.command("ask", async (ctx) => {
   const text = ctx.message.text?.replace("/ask", "")?.trim().toLowerCase();
 
   if (text) {
-    ctx.sendChatAction("typing");
-    const res = await getChat(text);
-    if (res) {
-      ctx.telegram.sendMessage(ctx.message.chat.id, res, {
-        reply_to_message_id: ctx.message.message_id,
-      });
+    try {
+      ctx.sendChatAction("typing");
+      const res = await getChat(text);
+      if (res) {
+        ctx.telegram.sendMessage(ctx.message.chat.id, res, {
+          reply_to_message_id: ctx.message.message_id,
+        });
+      }
+    } catch (error) {
+      console.error("Error occurred during ask command:", error);
+      ctx.telegram.sendMessage(
+        ctx.message.chat.id,
+        "An error occurred while processing the ask command.",
+        {
+          reply_to_message_id: ctx.message.message_id,
+        }
+      );
     }
   } else {
     ctx.telegram.sendMessage(
@@ -68,11 +84,7 @@ bot.command("ask", async (ctx) => {
         reply_to_message_id: ctx.message.message_id,
       }
     );
-  
-    //  reply("Please ask anything after /ask");
   }
 });
-
-
 
 bot.launch();
