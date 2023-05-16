@@ -19,14 +19,18 @@ bot.on('message', async (msg) => {
 // Send message to ChatGPT API
 const response = await axios.post('https://api.openai.com/v1/engines/davinci-codex/completions', {
   prompt: 'You are a helpful assistant.\nUser: ' + message,
-  max_tokens: 50,
   temperature: 0.6,
+  max_tokens: 150,
+  top_p: 1,
+  n: 1,
+  stop: '\n',
 }, {
   headers: {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${gptAPIKey}`,
   },
 });
+
 
 
 // Retrieve the generated response from ChatGPT
